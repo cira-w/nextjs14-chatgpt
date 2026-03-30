@@ -1,6 +1,15 @@
 import { handler } from "next/dist/build/templates/app-page";
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+
+export const get = query({
+    args: { id: v.id("chats") },
+    handler: async (ctx, args) => {
+        const chat = await ctx.db.get(args.id);
+        return chat;
+    },
+});
+
 export const create = mutation({
     args: {},
     //ctx=>context, args=>arguments
