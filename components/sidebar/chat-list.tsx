@@ -5,11 +5,14 @@ import { useQuery } from "convex/react";
 import { useParams } from "next/navigation";
 import { ChatBox } from "./chat-box";
 export const ChatList = () => {
-    const chats = useQuery(api.chats.list);
+    const chats = useQuery(api.chats.list || []);
     const { chatId } = useParams<{ chatId: Id<"chats"> }>();
 
     if (chats === undefined) {
         return <div>Loading...</div>;
+    }
+    if (chats === null) {
+        return null;
     }
 
     return (

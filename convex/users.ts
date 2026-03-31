@@ -1,5 +1,5 @@
 import { handler } from "next/dist/build/templates/app-page";
-import { mutation, query } from "./_generated/server";
+import { internalMutation, mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 export const store = mutation({
     args: {},
@@ -17,20 +17,32 @@ export const store = mutation({
                 q.eq("tokenIdentifier", identity.tokenIdentifier),
             )
             .unique();
-        //存储了用户信息就返回用户ID，没有就创建一个新的用户记录，并返回新的用户ID
+        //存储了用户信息就查看对话信息，有对话就返回第一个对话信息作为默认窗口，没有对话就创立一个新的对话，没有用户就创建一个新的用户记录，并创建一个新的对话
         if (user !== null) {
-            return user._id;
+            const chat = await ctx.db
+                .query("chats")
+                .withIndex("by_userId", (q) => q.eq("userId", user._id))
+                .first();
+            if (chat === null) {
+                const chatId = await ctx.db.insert("chats", {
+                    userId: user._id,
+                    title: "New Chat",
+                });
+                return chatId;
+            }
+            return chat._id;
         }
+        // Create a new user record if it doesn't exist
         const userId = await ctx.db.insert("users", {
             tokenIdentifier: identity.tokenIdentifier,
             model: "qwen3.5-flash",
         });
-        //创建一个新的聊天记录在存储用户信息到本地的时候，默认开一个新对话
-        await ctx.db.insert("chats", {
+        const chatId = await ctx.db.insert("chats", {
             userId,
             title: "New Chat",
         });
-        return userId;
+
+        return chatId;
     },
 });
 
@@ -72,5 +84,42 @@ export const currentUser = query({
                 q.eq("tokenIdentifier", identity.tokenIdentifier),
             )
             .unique();
+    },
+});
+//new subscription
+export const updateSubscription = internalMutation({
+    args: {
+        subscriptionId: v.string(),
+        userId: v.id("users"),
+        endsOn: v.number(),
+    },
+    handler: async (ctx, { subscriptionId, userId, endsOn }) => {
+        await ctx.db.patch(userId, {
+            subscriptionId: subscriptionId,
+            endsOn: endsOn,
+        });
+    },
+});
+//renew subscription
+export const updateSubscriptionById = internalMutation({
+    args: {
+        subscriptionId: v.string(),
+
+        endsOn: v.number(),
+    },
+    handler: async (ctx, { subscriptionId, endsOn }) => {
+        const user = await ctx.db
+            .query("users")
+            .withIndex("by_subscriptionId", (q) =>
+                q.eq("subscriptionId", subscriptionId),
+            )
+            .unique();
+
+        if (!user) {
+            throw new Error("user not found when update subscription");
+        }
+        await ctx.db.patch(user._id, {
+            endsOn: endsOn,
+        });
     },
 });

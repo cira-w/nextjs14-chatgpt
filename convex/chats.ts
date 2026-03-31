@@ -39,7 +39,7 @@ export const list = query({
     handler: async (ctx) => {
         const identity = await ctx.auth.getUserIdentity();
         if (!identity) {
-            throw new Error("Not authenticated");
+            return [];
         }
         //用户是否存在于数据库中
         const user = await ctx.db
@@ -48,8 +48,9 @@ export const list = query({
                 q.eq("tokenIdentifier", identity.tokenIdentifier),
             )
             .unique();
+
         if (user === null) {
-            throw new Error("User not found");
+            return null;
         }
         //查询用户的聊天记录
         return ctx.db
