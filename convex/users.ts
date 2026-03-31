@@ -23,7 +23,7 @@ export const store = mutation({
         }
         const userId = await ctx.db.insert("users", {
             tokenIdentifier: identity.tokenIdentifier,
-            model: "gpt-3.5-turbo",
+            model: "qwen3.5-flash",
         });
         //创建一个新的聊天记录在存储用户信息到本地的时候，默认开一个新对话
         await ctx.db.insert("chats", {
@@ -36,7 +36,7 @@ export const store = mutation({
 
 export const selectGPT = mutation({
     args: {
-        model: v.union(v.literal("gpt-3.5-turbo"), v.literal("gpt-4")),
+        model: v.union(v.literal("qwen3.5-flash"), v.literal("qwen3.5-plus")),
     },
     handler: async (ctx, args) => {
         const identity = await ctx.auth.getUserIdentity();

@@ -10,6 +10,8 @@ import { Check, ChevronDown, Sparkle, Sparkles, Zap } from "lucide-react";
 import { useState } from "react";
 import { GPTModel } from "@/lib/types";
 import { Checkbox } from "@/components/ui/checkbox";
+import { UpgradeModel } from "./upgrade-model";
+
 export const SelectModel = () => {
     const currentUser = useQuery(api.users.currentUser, {});
     const { mutate: selectGPT, pending: selectGPTPending } = useApiMutation(
@@ -26,10 +28,11 @@ export const SelectModel = () => {
         return <div>Error: User not found</div>;
     }
     const isSubscribed = currentUser && (currentUser?.endsOn ?? 0) > Date.now();
-    const GPTVersionText = currentUser.model === GPTModel.GPT3 ? "3.5" : "4";
+    const GPTVersionText =
+        currentUser.model === GPTModel["qwen3.5-flash"] ? "3.5" : "4";
     const handleClick = (model: GPTModel) => {
         //如果是gpt3.5，直接切换
-        if (model === GPTModel.GPT3) {
+        if (model === GPTModel["qwen3.5-flash"]) {
             selectGPT({ model });
             setOpenSelect(!openSelect);
             return;
@@ -46,9 +49,10 @@ export const SelectModel = () => {
     };
     return (
         <>
-            {/* <UpgradeModel
-            open={openUpgradeModel}
-            setOpen={setOpenUpgradeModel}/> */}
+            <UpgradeModel
+                open={openUpgradeModel}
+                setOpen={setOpenUpgradeModel}
+            />
             <Popover open={openSelect}>
                 <PopoverTrigger
                     onClick={toggleOpen}
@@ -58,40 +62,47 @@ export const SelectModel = () => {
                     <p className="text-white/50">{GPTVersionText}</p>
                     <ChevronDown className="text-white/50 w-5 h-5" />
                 </PopoverTrigger>
+
                 <PopoverContent className="flex flex-col border-0 bg-neutral-700 text-white p-3 space-y-4">
                     <div
-                        onClick={() => handleClick(GPTModel.GPT3)}
+                        onClick={() => handleClick(GPTModel["qwen3.5-flash"])}
                         className="flex items-center text-start cursor-pointer rounded-md justify-start space-x-2 p-2 h-full w-full hover:bg-neutral-600"
                     >
                         <Zap className="w-6 h-6" />
                         <div className="w-full">
-                            <p className="font-normal">gpt3.5</p>
+                            <p className="font-normal">qwen3.5-flash</p>
                             <p className="text-white/70">faster, cheaper</p>
                         </div>
                         <Checkbox
                             id="terms1"
-                            checked={currentUser.model === GPTModel.GPT3}
+                            checked={
+                                currentUser.model === GPTModel["qwen3.5-flash"]
+                            }
                         />
                     </div>
+
                     <div
-                        onClick={() => handleClick(GPTModel.GPT4)}
+                        onClick={() => handleClick(GPTModel["qwen3.5-plus"])}
                         className="flex items-center text-start cursor-pointer rounded-md justify-start space-x-2 p-2 h-full w-full hover:bg-neutral-600"
                     >
-                        <Sparkles />
+                        <Sparkles className="w-6 h-6" />
                         <div className="w-full">
-                            <p className="font-normal">gpt4</p>
+                            <p className="font-normal">qwen3.5-plus</p>
                             <p className="text-white/70">most capable</p>
+                            {!isSubscribed && (
+                                <div className="w-full p-2 rounded-lg text-xs text-white text-center font-normal cursor-pointer bg-purple-500 active:bg-purple-700 mt-1.5">
+                                    subscribe to use
+                                </div>
+                            )}
                         </div>
-                        {!isSubscribed && (
-                            <div className="w-full p-2 rounded-lg text-xs text-white text-center font-normal cursor-pointer bg-purple-500 active:bg-purple-700 mt-1.5">
-                                subscribe to use
-                            </div>
-                        )}
+
+                        <Checkbox
+                            id="terms2"
+                            checked={
+                                currentUser.model === GPTModel["qwen3.5-plus"]
+                            }
+                        />
                     </div>
-                    <Checkbox
-                        id="terms2"
-                        checked={currentUser.model === GPTModel.GPT4}
-                    />
                 </PopoverContent>
             </Popover>
         </>

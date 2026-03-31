@@ -1,5 +1,5 @@
-export type GPTModel = "gpt-3.5-turbo" | "gpt-4";
+export type GPTModel = "qwen3.5-flash" | "qwen3.5-plus";
 export const GPTModel = {
-    GPT3: "gpt-3.5-turbo",
-    GPT4: "gpt-4",
+    "qwen3.5-flash": "qwen3.5-flash",
+    "qwen3.5-plus": "qwen3.5-plus",
 } as const;
