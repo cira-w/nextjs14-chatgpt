@@ -1,11 +1,13 @@
 import { Doc } from "@/convex/_generated/dataModel";
 import { Avatar, AvatarImage, AvatarFallback } from "@radix-ui/react-avatar";
+import { memo } from "react";
 import Markdown from "./markdown";
 interface MessageBoxProps {
     message: Doc<"messages">;
     userImageUrl?: string | "";
 }
-export const MessageBox = ({ message, userImageUrl }: MessageBoxProps) => {
+
+export const MessageBox = memo(({ message, userImageUrl }: MessageBoxProps) => {
     const nameString = message.role === "user" ? "You" : "TalkGPT";
     const imageUrl = message.role === "user" ? userImageUrl : "/logo.png";
     return (
@@ -21,10 +23,12 @@ export const MessageBox = ({ message, userImageUrl }: MessageBoxProps) => {
             </Avatar>
             <div>
                 <h3 className="font-bold">{nameString}</h3>
-                <div className="flex flex-grow">
+                <div className="flex flex-grow flex-col">
                     <Markdown content={message.content} />
                 </div>
             </div>
         </div>
     );
-};
+});
+
+MessageBox.displayName = "MessageBox";
