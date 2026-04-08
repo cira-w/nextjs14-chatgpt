@@ -2,6 +2,7 @@ import {
     action,
     internalMutation,
     internalQuery,
+    mutation,
     query,
 } from "./_generated/server";
 import { v } from "convex/values";
@@ -101,29 +102,21 @@ export const submit = action({
                 chatId: args.chatId,
             },
         );
-        // for await (const part of stream) {
-        //     console.log(
-        //         "=== 接收到的流数据 ===",
-        //         JSON.stringify(part, null, 2),
-        //     );
-        //     if (part.choices[0].delta.content === null) {
-        //         throw Error("content is null");
-        //     }
 
-        //     if (part.choices[0].delta.content !== undefined) {
-        //         // if (part.choices[0].delta.content === "") {
-        //         //     throw new Error("content is empty");
-        //         // }
-        //         response += part.choices[0].delta.content;
+        // 设置聊天为生成中状态
+        await ctx.runMutation(api.chats.setGenerating, {
+            id: args.chatId,
+            isGenerating: true,
+        });
 
-        //         await ctx.runMutation(internal.messages.update, {
-        //             messageId: newAssistantMessageId,
-        //             content: response,
-        //         });
-        //     }
-        // }
-        // return response;
         for await (const part of stream) {
+            // 定期检查是否需要停止生成
+            const chat = await ctx.runQuery(api.chats.get, { id: args.chatId });
+            if (chat && !chat.isGenerating) {
+                // 用户点击了停止按钮，提前退出
+                break;
+            }
+
             const delta = part.choices?.[0]?.delta;
             const content = delta?.content;
 
@@ -138,6 +131,12 @@ export const submit = action({
                 content: response,
             });
         }
+
+        // 生成结束，重置状态
+        await ctx.runMutation(api.chats.setGenerating, {
+            id: args.chatId,
+            isGenerating: false,
+        });
     },
 });
 
@@ -149,6 +148,17 @@ export const update = internalMutation({
     handler: async (ctx, args) => {
         await ctx.db.patch(args.messageId, {
             content: args.content,
+        });
+    },
+});
+
+export const cancel = mutation({
+    args: {
+        messageId: v.id("messages"),
+    },
+    handler: async (ctx, args) => {
+        await ctx.db.patch(args.messageId, {
+            isCancelled: true,
         });
     },
 });

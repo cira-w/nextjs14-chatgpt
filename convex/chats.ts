@@ -30,6 +30,7 @@ export const create = mutation({
         const chatId = await ctx.db.insert("chats", {
             userId: user._id,
             title: "New Chat",
+            isGenerating: false,
         });
         return chatId;
     },
@@ -72,5 +73,14 @@ export const remove = mutation({
     args: { id: v.id("chats") },
     handler: async (ctx, args) => {
         await ctx.db.delete(args.id);
+    },
+});
+
+export const setGenerating = mutation({
+    args: { id: v.id("chats"), isGenerating: v.boolean() },
+    handler: async (ctx, args) => {
+        await ctx.db.patch(args.id, {
+            isGenerating: args.isGenerating,
+        });
     },
 });

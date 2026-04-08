@@ -22,6 +22,7 @@ export const store = mutation({
             const chat = await ctx.db
                 .query("chats")
                 .withIndex("by_userId", (q) => q.eq("userId", user._id))
+                .order("desc")
                 .first();
             if (chat === null) {
                 const chatId = await ctx.db.insert("chats", {

@@ -24,9 +24,9 @@ const Chat = ({ params }: ChatPageProps) => {
     return (
         <div className="bg-neutral-800 w-full h-full flex flex-col">
             <Header />
-            <div className="flex flex-col h-full w-full">
+            <div className="flex flex-col h-full w-full overflow-hidden">
                 <Body chatId={chatId} />
-                <div className="w-full fixed bottom-0">
+                <div className="w-full pb-2">
                     <Form chatId={chatId} />
                     <p className="w-full text-center text-xs text-neutral-400 my-2 lg:pr-[300px]">
                         talk with gpt
